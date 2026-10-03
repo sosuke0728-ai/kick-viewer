@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KICK Stream Viewer</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0f0f12;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    .container {
+      width: min(1100px, 100%);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .note {
+      margin: 0 0 24px;
+      color: #aaa;
+      font-size: 14px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 14px 16px;
+      border: 1px solid #333;
+      border-radius: 10px;
+      background: #19191e;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+    input:focus {
+      border-color: #53d17a;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 0 20px;
+      background: #53d17a;
+      color: #07100a;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    .player {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,.35);
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #777;
+      text-align: center;
+      padding: 20px;
+    }
+    .error {
+      margin-top: 12px;
+      color: #ff8d8d;
+      font-size: 14px;
+      display: none;
+    }
+    @media (max-width: 600px) {
+      body { padding: 20px 10px; }
+      .controls { flex-direction: column; }
+      button { padding: 14px; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>KICK Stream Viewer</h1>
+    <p class="note">KICK公式プレイヤーをこのページ内に表示します。</p>
+
+    <form class="controls" id="form">
+      <input
+        id="channel"
+        type="text"
+        placeholder="配信者名を入力（例: xqc）"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button type="submit">視聴する</button>
+    </form>
+
+    <div class="player" id="player">
+      <div class="placeholder" id="placeholder">
+        配信者名を入力すると、ここにプレイヤーが表示されます。
+      </div>
+    </div>
+
+    <div class="error" id="error"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById("form");
+    const channelInput = document.getElementById("channel");
+    const player = document.getElementById("player");
+    const placeholder = document.getElementById("placeholder");
+    const error = document.getElementById("error");
+
+    function loadStream(channel) {
+      channel = channel.trim();
+
+      // KICKのチャンネル名として安全な文字だけ許可
+      if (!/^[a-zA-Z0-9_\\-]+$/.test(channel)) {
+        error.textContent = "配信者名に使用できない文字が含まれています。";
+        error.style.display = "block";
+        return;
+      }
+
+      error.style.display = "none";
+      placeholder.style.display = "none";
+
+      const oldIframe = player.querySelector("iframe");
+      if (oldIframe) oldIframe.remove();
+
+      const iframe = document.createElement("iframe");
+      iframe.src = "https://player.kick.com/" + encodeURIComponent(channel);
+      iframe.allow =
+        "autoplay; fullscreen; encrypted-media; picture-in-picture";
+      iframe.allowFullscreen = true;
+      iframe.setAttribute("title", "KICK stream player");
+
+      player.appendChild(iframe);
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      loadStream(channelInput.value);
+    });
+  </script>
+</body>
+</html>
